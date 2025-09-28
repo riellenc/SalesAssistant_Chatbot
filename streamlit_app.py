@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 # Configuración DeepSeek API - REEMPLAZA CON TU API KEY
-DEEPSEEK_API_KEY = "tu-api-key-de-deepseek-aqui"  # ← CONSÍGUELA EN platform.deepseek.com
+DEEPSEEK_API_KEY = "sk-99c56a37c1a74d22878767f6aa218ea7"  # ← CONSÍGUELA EN platform.deepseek.com
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 def consultar_deepseek(situacion, detalles, prioridades):
