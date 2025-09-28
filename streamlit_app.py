@@ -1,3 +1,5 @@
+python
+
 import streamlit as st
 import json
 from datetime import datetime
@@ -171,9 +173,6 @@ class MattressSalesAssistant:
             st.button("🎁 Ofrecer promoción especial")
 
     def consultar_ia(self, situacion, detalles):
-        """IA que analiza la situación y da consejos específicos"""
-        
-        # Base de conocimiento de la IA
         consejos = {
             "Cliente indeciso - necesita ayuda": [
                 "Haz 2-3 preguntas más profundas sobre sus hábitos de sueño",
@@ -213,8 +212,7 @@ class MattressSalesAssistant:
             ]
         }
         
-        # Respuesta base + consejos específicos
-        respuesta = f"**Análisis de la situación:**\n\n"
+        respuesta = f"**Análisis IA - {situacion}**\n\n"
         
         if situacion in consejos:
             respuesta += "**Consejos específicos:**\n"
@@ -224,7 +222,6 @@ class MattressSalesAssistant:
             respuesta += "**Estrategia general recomendada:**\n"
             respuesta += "• Mantén la escucha activa\n• Conecta con necesidades emocionales\n• Usa preguntas poderosas\n• Crea urgencia con beneficios\n"
         
-        # Añadir prioridades del jefe
         respuesta += f"\n**🎯 Aplica las prioridades del jefe:**\n"
         for prioridad in st.session_state.estrategia['prioridades_semana'][:2]:
             respuesta += f"• {prioridad}\n"
