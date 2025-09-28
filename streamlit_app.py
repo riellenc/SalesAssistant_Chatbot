@@ -171,6 +171,9 @@ class MattressSalesAssistant:
             st.button("🎁 Ofrecer promoción especial")
 
     def consultar_ia(self, situacion, detalles):
+        """IA que analiza la situación y da consejos específicos"""
+        
+        # Base de conocimiento de la IA
         consejos = {
             "Cliente indeciso - necesita ayuda": [
                 "Haz 2-3 preguntas más profundas sobre sus hábitos de sueño",
@@ -181,7 +184,7 @@ class MattressSalesAssistant:
             "Objeción de precio - no ve el valor": [
                 "Divide el precio en costo por noche de sueño",
                 "Recuerda la garantía de 12 años vs competencia (8-10 años)",
-                "Destaca el ahorro en salud y productividad a largo plazo", 
+                "Destaca el ahorro en salud a largo plazo",
                 "Aplica PRIORIDAD: Garantía 12 años como diferencial"
             ],
             "Cliente compara con competencia": [
@@ -210,7 +213,8 @@ class MattressSalesAssistant:
             ]
         }
         
-        respuesta = f"**Análisis IA - {situacion}**\n\n"
+        # Respuesta base + consejos específicos
+        respuesta = f"**Análisis de la situación:**\n\n"
         
         if situacion in consejos:
             respuesta += "**Consejos específicos:**\n"
@@ -220,6 +224,7 @@ class MattressSalesAssistant:
             respuesta += "**Estrategia general recomendada:**\n"
             respuesta += "• Mantén la escucha activa\n• Conecta con necesidades emocionales\n• Usa preguntas poderosas\n• Crea urgencia con beneficios\n"
         
+        # Añadir prioridades del jefe
         respuesta += f"\n**🎯 Aplica las prioridades del jefe:**\n"
         for prioridad in st.session_state.estrategia['prioridades_semana'][:2]:
             respuesta += f"• {prioridad}\n"
