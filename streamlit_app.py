@@ -1,56 +1,234 @@
 import streamlit as st
-from openai import OpenAI
+import json
+from datetime import datetime
 
-# Show title and description.
-st.title("💬 Chatbot")
-st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
-)
-
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
-
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
-
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
-
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
+class MattressSalesAssistant:
+    def __init__(self):
+        self.setup_page()
+        self.initialize_session_state()
+        
+    def setup_page(self):
+        st.set_page_config(
+            page_title="Asistente Ventas Colchones + IA",
+            page_icon="🛏️",
+            layout="wide"
         )
+        
+    def initialize_session_state(self):
+        if 'estrategia' not in st.session_state:
+            st.session_state.estrategia = {
+                'prioridades_semana': [
+                    "ENFOCARSE EN COLCHONES REFRESCANTES - 70% de clientes preguntan por calor nocturno",
+                    "DESTACAR GARANTÍA 12 AÑOS - vs 8-10 años de competencia",  
+                    "CIERRE CON PRUEBA 30 NOCHES - elimina el riesgo del cliente"
+                ],
+                'proceso_venta': [
+                    "SALUDO + DIAGNÓSTICO - 3 preguntas clave sobre sueño actual",
+                    "DEMOSTRACIÓN INTERACTIVA - probar tecnologías en tienda",
+                    "PERSONALIZACIÓN - conectar necesidades con beneficios", 
+                    "MANEJO OBJECIONES - respuestas preparadas",
+                    "CIERRE AVANZADO - prueba 30 noches + financiación"
+                ],
+                'argumentarios': {
+                    'tecnologia_refrescante': "Nuestro sistema CoolMax dispersa 30% más calor que memory foam tradicional",
+                    'garantia': "Garantía 12 años - 3 años más que la competencia promedio",
+                    'soporte_lumbar': "7 zonas de firmeza para mantener la columna alineada"
+                },
+                'objeciones': {
+                    'precio': "Divida el precio: son solo $X por noche de sueño reparador + ahorro en salud",
+                    'pensarlo': "Le ofrezco prueba 30 noches en casa sin riesgo + financiación a 36 meses"
+                }
+            }
+        if 'conversacion_actual' not in st.session_state:
+            st.session_state.conversacion_actual = []
 
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+    def run(self):
+        st.sidebar.title("🔧 Modo de Acceso")
+        modo = st.sidebar.radio("Selecciona el modo:", ["MODO JEFE", "MODO COMERCIAL"])
+        
+        if modo == "MODO JEFE":
+            self.modo_jefe()
+        else:
+            self.modo_comercial()
+
+    def modo_jefe(self):
+        st.title("🎛️ MODO JEFE - Panel de Control")
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            st.subheader("🎯 Configurar Prioridades")
+            nuevas_prioridades = st.text_area(
+                "Prioridades de la semana (una por línea):",
+                value="\n".join(st.session_state.estrategia['prioridades_semana']),
+                height=150
+            )
+            
+            st.subheader("📋 Proceso de Venta")
+            nuevo_proceso = st.text_area(
+                "Pasos del proceso (uno por línea):", 
+                value="\n".join(st.session_state.estrategia['proceso_venta']),
+                height=150
+            )
+            
+            if st.button("💾 Guardar Estrategia", type="primary"):
+                st.session_state.estrategia['prioridades_semana'] = [p.strip() for p in nuevas_prioridades.split('\n') if p.strip()]
+                st.session_state.estrategia['proceso_venta'] = [p.strip() for p in nuevo_proceso.split('\n') if p.strip()]
+                st.success("✅ Estrategia actualizada para todos los comerciales")
+        
+        with col2:
+            st.subheader("👥 Comerciales Activos")
+            st.metric("Conectados", "3/20")
+            st.metric("Ventas Hoy", "7")
+            st.metric("Tasa Conversión", "35%")
+            
+            st.subheader("📊 IA - Recomendaciones")
+            st.info("""
+            **Sugerencias basadas en datos:**
+            - 70% de clientes preguntan por colchones frescos
+            - Objeción 'precio' aparece en 60% de ventas  
+            - Cierres aumentan 25% con prueba gratuita
+            """)
+
+    def modo_comercial(self):
+        st.title("🛏️ Asistente de Ventas + IA")
+        
+        # Barra superior con info clave
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.info("🎯 **Prioridades:** " + " | ".join(st.session_state.estrategia['prioridades_semana'][:2]))
+        with col2:
+            st.warning("📋 **Paso Actual:** " + st.session_state.estrategia['proceso_venta'][0])
+        with col3:
+            st.success("💡 **IA Activa:** Lista para consultas")
+        
+        st.divider()
+        
+        # Área principal - Asistente IA
+        col_izq, col_der = st.columns([2, 1])
+        
+        with col_izq:
+            st.header("🤖 Asistente IA - Consultas en Tiempo Real")
+            
+            # Situación actual del comercial
+            situacion = st.selectbox(
+                "Describe tu situación actual:",
+                [
+                    "Cliente indeciso - necesita ayuda",
+                    "Objeción de precio - no ve el valor", 
+                    "Cliente compara con competencia",
+                    "No detecto necesidades claras", 
+                    "Momento de cierre - cómo proceder",
+                    "Cliente con problemas de espalda",
+                    "Otra situación..."
+                ]
+            )
+            
+            detalles = st.text_area("Proporciona más detalles:", placeholder="Ej: Cliente dice que nuestro colchón es caro comparado con la competencia...")
+            
+            if st.button("🔍 Consultar a IA", type="primary"):
+                if detalles:
+                    respuesta_ia = self.consultar_ia(situacion, detalles)
+                    st.session_state.conversacion_actual.append({
+                        'situacion': situacion,
+                        'detalles': detalles, 
+                        'respuesta': respuesta_ia,
+                        'timestamp': datetime.now().strftime("%H:%M")
+                    })
+            
+            # Mostrar conversación
+            st.subheader("💬 Historial Consulta")
+            for consulta in reversed(st.session_state.conversacion_actual[-3:]):
+                with st.expander(f"🕐 {consulta['timestamp']} - {consulta['situacion']}"):
+                    st.write(f"**Comercial:** {consulta['detalles']}")
+                    st.write(f"**IA:** {consulta['respuesta']}")
+        
+        with col_der:
+            st.header("🎯 Estrategia del Jefe")
+            
+            st.write("**Prioridades de la semana:**")
+            for i, prioridad in enumerate(st.session_state.estrategia['prioridades_semana'], 1):
+                st.write(f"{i}. {prioridad}")
+            
+            st.divider()
+            
+            st.write("**Proceso de venta:**")
+            for paso in st.session_state.estrategia['proceso_venta']:
+                st.write(f"→ {paso}")
+            
+            st.divider()
+            
+            st.write("**Argumentarios clave:**")
+            for key, argumento in st.session_state.estrategia['argumentarios'].items():
+                st.write(f"• {argumento}")
+            
+            st.divider()
+            
+            # Acciones rápidas
+            st.write("**🚀 Acciones Sugeridas**")
+            st.button("📞 Llamar para seguimiento")
+            st.button("📧 Enviar catálogo digital") 
+            st.button("🎁 Ofrecer promoción especial")
+
+    def consultar_ia(self, situacion, detalles):
+        consejos = {
+            "Cliente indeciso - necesita ayuda": [
+                "Haz 2-3 preguntas más profundas sobre sus hábitos de sueño",
+                "Ofrece probar 2 modelos contrastados (firme/suave)",
+                "Cuenta un caso de éxito de cliente similar",
+                "Conecta con la PRIORIDAD: Prueba 30 noches sin riesgo"
+            ],
+            "Objeción de precio - no ve el valor": [
+                "Divide el precio en costo por noche de sueño",
+                "Recuerda la garantía de 12 años vs competencia (8-10 años)",
+                "Destaca el ahorro en salud y productividad a largo plazo", 
+                "Aplica PRIORIDAD: Garantía 12 años como diferencial"
+            ],
+            "Cliente compara con competencia": [
+                "Pregunta: ¿Qué características valora más?",
+                "Enfócate en nuestra tecnología CoolMax exclusiva",
+                "Ofrece prueba comparativa en tienda",
+                "Destaca PRIORIDAD: Tecnología refrescante superior"
+            ],
+            "No detecto necesidades claras": [
+                "Usa preguntas abiertas: '¿Cómo sería su sueño ideal?'",
+                "Pregunta por molestias al despertar (calor, dolor)",
+                "Habla de beneficios emocionales (energía, productividad)",
+                "Aplica PRIORIDAD: Enfoque en colchones refrescantes"
+            ],
+            "Momento de cierre - cómo proceder": [
+                "Pregunta de elección: ¿Prefiere entrega viernes o sábado?",
+                "Ofrece financiación a 36 meses sin intereses",
+                "Recuerda la prueba de 30 noches sin riesgo",
+                "Usa PRIORIDAD: Cierre con prueba 30 noches"
+            ],
+            "Cliente con problemas de espalda": [
+                "Enfoca en las 7 zonas de firmeza para soporte lumbar",
+                "Pregunta por tipo específico de dolor (lumbar, cervical)",
+                "Ofrece prueba con colchón de firmeza media-alta",
+                "Conecta con garantía 12 años para tranquilidad"
+            ]
+        }
+        
+        respuesta = f"**Análisis IA - {situacion}**\n\n"
+        
+        if situacion in consejos:
+            respuesta += "**Consejos específicos:**\n"
+            for consejo in consejos[situacion]:
+                respuesta += f"• {consejo}\n"
+        else:
+            respuesta += "**Estrategia general recomendada:**\n"
+            respuesta += "• Mantén la escucha activa\n• Conecta con necesidades emocionales\n• Usa preguntas poderosas\n• Crea urgencia con beneficios\n"
+        
+        respuesta += f"\n**🎯 Aplica las prioridades del jefe:**\n"
+        for prioridad in st.session_state.estrategia['prioridades_semana'][:2]:
+            respuesta += f"• {prioridad}\n"
+            
+        return respuesta
+
+def main():
+    assistant = MattressSalesAssistant()
+    assistant.run()
+
+if __name__ == "__main__":
+    main()
